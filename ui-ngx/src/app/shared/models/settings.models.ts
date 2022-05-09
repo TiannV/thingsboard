@@ -497,3 +497,29 @@ export interface FeaturesInfo {
   oauthEnabled: boolean;
   twoFaEnabled: boolean;
 }
+
+export interface WhiteLabeling {
+  logoImageUrl: string;
+  logoImageHeight: number;
+  appTitle: string;
+  faviconUrl: string;
+  paletteSettings: PaletteSettings;
+  helpLinkBaseUrl: string;
+  enableHelpLinks: boolean;
+  whiteLabelingEnabled: boolean;
+  showNameVersion: boolean;
+  platformName: string;
+  platformVersion: string;
+  customCss: string;
+}
+
+export interface PaletteSettings {
+  primaryPalette: Palette;
+  accentPalette: Palette;
+}
+
+export interface Palette {
+  type: string;
+  colors: any;
+  extends: any;
+}

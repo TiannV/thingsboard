@@ -47,6 +47,7 @@ import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.SchedulerServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ErrorEventProto;
@@ -85,6 +86,7 @@ import org.thingsboard.server.service.queue.processing.IdMsgPair;
 import org.thingsboard.server.service.rpc.TbCoreDeviceRpcService;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
+import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
@@ -137,6 +139,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final GitVersionControlQueueService vcQueueService;
     private final NotificationSchedulerService notificationSchedulerService;
     private final NotificationRuleProcessor notificationRuleProcessor;
+    private final SchedulerService schedulerService;
     private final TbCoreConsumerStats stats;
     protected final TbQueueConsumer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
     private final TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
@@ -159,6 +162,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbTenantProfileCache tenantProfileCache,
                                         TbApiUsageStateService apiUsageStateService,
                                         EdgeNotificationService edgeNotificationService,
+                                        SchedulerService schedulerService,
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
                                         PartitionService partitionService,
@@ -181,6 +185,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.vcQueueService = vcQueueService;
         this.notificationSchedulerService = notificationSchedulerService;
         this.notificationRuleProcessor = notificationRuleProcessor;
+        this.schedulerService = schedulerService;
     }
 
     @PostConstruct
@@ -261,6 +266,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                 } else if (toCoreMsg.hasDeviceStateServiceMsg()) {
                                     log.trace("[{}] Forwarding message to state service {}", id, toCoreMsg.getDeviceStateServiceMsg());
                                     forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);
+                                } else if (toCoreMsg.hasSchedulerServiceMsg()) {
+                                    log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
+                                    forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
                                 } else if (toCoreMsg.hasEdgeNotificationMsg()) {
                                     log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
                                     forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);
@@ -657,6 +665,13 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } catch (Exception e) {
             callback.onFailure(new RuntimeException("Failed to schedule notification request", e));
         }
+    }
+
+    private void forwardToSchedulerService(SchedulerServiceMsgProto schedulerServiceMsg, TbCallback callback) {
+        if (statsEnabled) {
+            stats.log(schedulerServiceMsg);
+        }
+        schedulerService.onQueueMsg(schedulerServiceMsg, callback);
     }
 
     private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {

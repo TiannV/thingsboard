@@ -103,6 +103,8 @@ public class EntityIdFactory {
                 return new NotificationTemplateId(uuid);
             case NOTIFICATION:
                 return new NotificationId(uuid);
+            case SCHEDULER_JOB:
+                return new SchedulerJobId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }

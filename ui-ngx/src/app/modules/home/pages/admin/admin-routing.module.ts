@@ -39,6 +39,7 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
 import { widgetsLibraryRoutes } from '@home/pages/widget/widget-library-routing.module';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module';
+import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -339,8 +340,73 @@ const routes: Routes = [
           loginProcessingUrl: OAuth2LoginProcessingUrlResolver
         }
       },
+
+      {
+        path: 'home',
+        component: HomeSettingsComponent,
+        canDeactivate: [ConfirmOnExitGuard],
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'admin.home-settings',
+          breadcrumb: {
+            label: 'admin.home-settings',
+            icon: 'settings_applications'
+          }
+        }
+      },
+      {
+        path: 'resources-library',
+        data: {
+          breadcrumb: {
+            label: 'resource.resources-library',
+            icon: 'folder'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: EntitiesTableComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'resource.resources-library',
+            },
+            resolve: {
+              entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          },
+          {
+            path: ':entityId',
+            component: EntityDetailsPageComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: entityDetailsPageBreadcrumbLabelFunction,
+                icon: 'folder'
+              } as BreadCrumbConfig<EntityDetailsPageComponent>,
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
+              title: 'resource.resources-library'
+            },
+            resolve: {
+              entitiesTableConfig: ResourcesLibraryTableConfigResolver
+            }
+          }
+        ]
+      },
       ...auditLogsRoutes
     ]
+  },
+  {
+    path: 'settings/white-labeling',
+    component: WhiteLabelingComponent,
+    canDeactivate: [ConfirmOnExitGuard],
+    data: {
+      auth: [Authority.SYS_ADMIN],
+      title: 'admin.white-labeling.title',
+      breadcrumb: {
+        label: 'admin.white-labeling.title',
+        icon: 'format_paint'
+      }
+    }
   }
 ];
 

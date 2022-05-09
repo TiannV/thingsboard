@@ -58,7 +58,8 @@ public enum EntityType {
     NOTIFICATION_TEMPLATE (30),
     NOTIFICATION_REQUEST (31),
     NOTIFICATION (32),
-    NOTIFICATION_RULE (33);
+    NOTIFICATION_RULE (33),
+    SCHEDULER_JOB (100);
 
     @Getter
     private final int protoNumber; // Corresponds to EntityTypeProto
@@ -73,5 +74,6 @@ public enum EntityType {
     @Getter
     private final String normalName = StringUtils.capitalize(StringUtils.removeStart(name(), "TB_")
             .toLowerCase().replaceAll("_", " "));
+
 
 }

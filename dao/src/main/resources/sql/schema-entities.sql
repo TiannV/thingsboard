@@ -762,6 +762,52 @@ CREATE TABLE IF NOT EXISTS rpc (
     status varchar(255) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS scheduler_job (
+    id uuid NOT NULL CONSTRAINT scheduler_job_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid,
+    name varchar(255),
+    search_text varchar(255),
+    customer_id uuid,
+    type varchar(255),
+    schedule varchar,
+    configuration varchar(10000000),
+    additional_info varchar(10000000),
+    CONSTRAINT scheduler_job_name_unq_key UNIQUE (tenant_id, name)
+);
+
+CREATE OR REPLACE PROCEDURE cleanup_events_by_ttl(
+    IN regular_events_start_ts bigint,
+    IN regular_events_end_ts bigint,
+    IN debug_events_start_ts bigint,
+    IN debug_events_end_ts bigint,
+    INOUT deleted bigint)
+    LANGUAGE plpgsql AS
+$$
+DECLARE
+    ttl_deleted_count bigint DEFAULT 0;
+    debug_ttl_deleted_count bigint DEFAULT 0;
+BEGIN
+    IF regular_events_start_ts > 0 AND regular_events_end_ts > 0 THEN
+        EXECUTE format(
+                'WITH deleted AS (DELETE FROM event WHERE id in (SELECT id from event WHERE ts > %L::bigint AND ts < %L::bigint AND ' ||
+                '(event_type != %L::varchar AND event_type != %L::varchar)) RETURNING *) ' ||
+                'SELECT count(*) FROM deleted', regular_events_start_ts, regular_events_end_ts,
+                'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN') into ttl_deleted_count;
+    END IF;
+    IF debug_events_start_ts > 0 AND debug_events_end_ts > 0 THEN
+        EXECUTE format(
+                'WITH deleted AS (DELETE FROM event WHERE id in (SELECT id from event WHERE ts > %L::bigint AND ts < %L::bigint AND ' ||
+                '(event_type = %L::varchar OR event_type = %L::varchar)) RETURNING *) ' ||
+                'SELECT count(*) FROM deleted', debug_events_start_ts, debug_events_end_ts,
+                'DEBUG_RULE_NODE', 'DEBUG_RULE_CHAIN') into debug_ttl_deleted_count;
+    END IF;
+    RAISE NOTICE 'Events removed by ttl: %', ttl_deleted_count;
+    RAISE NOTICE 'Debug Events removed by ttl: %', debug_ttl_deleted_count;
+    deleted := ttl_deleted_count + debug_ttl_deleted_count;
+END
+$$;
+
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
 $$
 BEGIN

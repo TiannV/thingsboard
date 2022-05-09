@@ -709,14 +709,10 @@ spring:
       # You can set a Hibernate feature that controls the DDL behavior in a more fine-grained way. The standard Hibernate property values are none, validate, update, create-drop. Spring Boot chooses a default value for you based on whether it thinks your database is embedded (default create-drop) or not (default none)
       ddl-auto: "none"
   datasource:
-    # Database driver for Spring JPA - org.postgresql.Driver
-    driverClassName: "${SPRING_DRIVER_CLASS_NAME:org.postgresql.Driver}"
-    # Database connection URL
-    url: "${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/thingsboard}"
-    # Database user name
-    username: "${SPRING_DATASOURCE_USERNAME:postgres}"
-    # Database user password
-    password: "${SPRING_DATASOURCE_PASSWORD:postgres}"
+    driverClassName: "${SPRING_DRIVER_CLASS_NAME:com.p6spy.engine.spy.P6SpyDriver}"
+    url: "jdbc:p6spy:postgresql://${ENV_DB_IP}:${ENV_DB_PORT}/${ENV_DB_NAME}"
+    username: "${ENV_DB_USERNAME:postgres}"
+    password: "${ENV_DB_PASSWORD:postgres}"
     hikari:
       # This property controls the amount of time that a connection can be out of the pool before a message is logged indicating a possible connection leak. A value of 0 means leak detection is disabled
       leakDetectionThreshold: "${SPRING_DATASOURCE_HIKARI_LEAK_DETECTION_THRESHOLD:0}"
@@ -747,6 +743,7 @@ audit-log:
       "edge": "${AUDIT_LOG_MASK_EDGE:W}" # Edge logging levels. Allowed values: OFF (disable), W (log write operations), RW (log read and write operation
       "tb_resource": "${AUDIT_LOG_MASK_RESOURCE:W}" # TB resource logging levels. Allowed values: OFF (disable), W (log write operations), RW (log read and write operation
       "ota_package": "${AUDIT_LOG_MASK_OTA_PACKAGE:W}" # Ota package logging levels. Allowed values: OFF (disable), W (log write operations), RW (log read and write operation
+      "scheduler_job": "${AUDIT_LOG_MASK_SCHEDULER_JOB:W}"
   sink:
     # Type of external sink. possible options: none, elasticsearch
     type: "${AUDIT_LOG_SINK_TYPE:none}"

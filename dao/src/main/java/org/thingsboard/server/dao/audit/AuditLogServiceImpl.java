@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.scheduler.SchedulerJob;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.audit.sink.AuditLogSink;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
@@ -330,6 +331,19 @@ public class AuditLogServiceImpl implements AuditLogService {
                 String number = extractParameter(String.class, 0, additionalInfo);
                 actionData.put("recipientNumber", number);
                 break;
+            case SCHEDULE_EXEC:
+                JsonNode schedule = null;
+                try {
+                    SchedulerJob schedulerJob = extractParameter(SchedulerJob.class, 0, additionalInfo);
+                    if (schedulerJob != null) {
+                        schedule =  JacksonUtil.valueToTree(schedulerJob);
+                    }
+                } catch (Exception e) {
+                    log.error("extractParameter error {}", e.getMessage());
+                }
+
+                actionData.set("schedule", schedule);
+                break;
         }
         return actionData;
     }
@@ -396,15 +410,16 @@ public class AuditLogServiceImpl implements AuditLogService {
                                                    JsonNode actionData,
                                                    ActionStatus actionStatus,
                                                    String actionFailureDetails) {
-        AuditLog auditLogEntry = createAuditLogEntry(tenantId, entityId, entityName, customerId, userId, userName,
-                actionType, actionData, actionStatus, actionFailureDetails);
-        log.trace("Executing logAction [{}]", auditLogEntry);
+        AuditLog auditLogEntry = null;
         try {
+            auditLogEntry = createAuditLogEntry(tenantId, entityId, entityName, customerId, userId, userName,
+                    actionType, actionData, actionStatus, actionFailureDetails);
             auditLogValidator.validate(auditLogEntry, AuditLog::getTenantId);
         } catch (Exception e) {
             if (StringUtils.contains(e.getMessage(), "is malformed")) {
                 auditLogEntry.setEntityName("MALFORMED");
             } else {
+                log.error("Executing logAction failed {}", e.getMessage());
                 return Futures.immediateFailedFuture(e);
             }
         }

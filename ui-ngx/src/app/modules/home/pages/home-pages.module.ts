@@ -43,6 +43,9 @@ import { EntitiesModule } from '@home/pages/entities/entities.module';
 import { FeaturesModule } from '@home/pages/features/features.module';
 import { NotificationModule } from '@home/pages/notification/notification.module';
 import { AccountModule } from '@home/pages/account/account.module';
+import { SchedulerJobModule } from '@home/pages/scheduler-job/scheduler-job.module';
+import {MODULES_MAP} from "@shared/models/constants";
+import {modulesMap} from "@modules/common/modules-map";
 
 @NgModule({
   exports: [
@@ -70,9 +73,16 @@ import { AccountModule } from '@home/pages/account/account.module';
     AuditLogModule,
     ApiUsageModule,
     OtaUpdateModule,
+    SchedulerJobModule,
     UserModule,
     VcModule,
     AccountModule
+  ],
+  providers: [
+    {
+      provide: MODULES_MAP,
+      useValue: modulesMap
+    }
   ]
 })
 export class HomePagesModule { }

@@ -32,6 +32,7 @@ import { instanceOfSearchableComponent, ISearchableComponent } from '@home/model
 import { ActiveComponentService } from '@core/services/active-component.service';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { FormBuilder } from '@angular/forms';
+import {WhitelabelUtilsService} from '@core/services/whitelabel-utils.service';
 
 @Component({
   selector: 'tb-home',
@@ -70,6 +71,7 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
               private activeComponentService: ActiveComponentService,
+              public whiteLabelUtilsService: WhitelabelUtilsService,
               public breakpointObserver: BreakpointObserver,
               private fb: FormBuilder) {
     super(store);

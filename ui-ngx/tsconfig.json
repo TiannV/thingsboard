@@ -39,6 +39,9 @@
       "@home/*": [
         "src/app/modules/home/*"
       ],
+      "@global/*": [
+        "src/globals/*"
+      ],
       "jszip": [
         "node_modules/jszip/dist/jszip.min.js"
       ],

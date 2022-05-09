@@ -24,6 +24,7 @@ import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
 import { NavigationEnd, Router } from '@angular/router';
+import { guid } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -268,6 +269,20 @@ export class MenuService {
             type: 'link',
             path: '/security-settings/oauth2',
             icon: 'mdi:shield-account'
+          },
+          {
+            id: guid(),
+            name: 'resource.resources-library',
+            type: 'link',
+            path: '/settings/resources-library',
+            icon: 'folder'
+          },
+          {
+            id: guid(),
+            name: 'admin.white-labeling.title',
+            type: 'link',
+            path: '/settings/white-labeling',
+            icon: 'format_paint'
           }
         ]
       }
@@ -346,6 +361,11 @@ export class MenuService {
             icon: 'swap_calls',
             path: '/settings/queues'
           },
+          {
+            name: 'admin.white-labeling.title',
+            icon: 'format_paint',
+            path: '/settings/white-labeling',
+          }
         ]
       }
     );
@@ -442,6 +462,41 @@ export class MenuService {
         type: 'link',
         path: '/ruleChains',
         icon: 'settings_ethernet'
+      },
+      {
+        id: guid(),
+        name: 'device.devices',
+        type: 'link',
+        path: '/devices',
+        icon: 'devices_other'
+      },
+      {
+        id: guid(),
+        name: 'device-profile.device-profiles',
+        type: 'link',
+        path: '/deviceProfiles',
+        icon: 'mdi:alpha-d-box'
+      },
+      {
+        id: guid(),
+        name: 'ota-update.ota-updates',
+        type: 'link',
+        path: '/otaUpdates',
+        icon: 'memory'
+      },
+      {
+        id: guid(),
+        name: 'scheduler-job.scheduler-jobs',
+        type: 'link',
+        path: '/schedulerJobs',
+        icon: 'schedule'
+      },
+      {
+        id: guid(),
+        name: 'entity-view.entity-views',
+        type: 'link',
+        path: '/entityViews',
+        icon: 'view_quilt'
       }
     );
     if (authState.edgesSupportEnabled) {

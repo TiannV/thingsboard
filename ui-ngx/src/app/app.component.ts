@@ -31,6 +31,8 @@ import { selectIsAuthenticated, selectIsUserLoaded } from '@core/auth/auth.selec
 import { distinctUntilChanged, filter, map, skip } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { svgIcons, svgIconsUrl } from '@shared/models/icon.models';
+import { WhitelabelUtilsService } from '@core/services/whitelabel-utils.service';
+import { WhiteLabelService } from '@core/http/white-label.service';
 
 @Component({
   selector: 'tb-root',
@@ -44,6 +46,8 @@ export class AppComponent implements OnInit {
               private translate: TranslateService,
               private matIconRegistry: MatIconRegistry,
               private domSanitizer: DomSanitizer,
+              private whiteLabelUtilsService: WhitelabelUtilsService,
+              private whiteLabelService: WhiteLabelService,
               private authService: AuthService) {
 
     console.log(`ThingsBoard Version: ${env.tbVersion}`);
@@ -73,6 +77,7 @@ export class AppComponent implements OnInit {
 
     this.setupTranslate();
     this.setupAuth();
+    this.setupWhiteLabeling();
   }
 
   setupTranslate() {
@@ -98,7 +103,13 @@ export class AppComponent implements OnInit {
     ).subscribe((data) => {
       this.authService.gotoDefaultPlace(data.isAuthenticated);
     });
-    this.authService.reloadUser();
+    // this.authService.reloadUser();
+  }
+
+  setupWhiteLabeling() {
+    this.whiteLabelUtilsService.setup().subscribe((data) => {
+      this.authService.reloadUser();
+    });
   }
 
   ngOnInit() {

@@ -57,6 +57,7 @@ public enum ActionType {
     ADDED_COMMENT(false, TbMsgType.COMMENT_CREATED),
     UPDATED_COMMENT(false, TbMsgType.COMMENT_UPDATED),
     DELETED_COMMENT(false, null),
+    SCHEDULE_EXEC(false, null),
     SMS_SENT(false, null);
 
     @Getter

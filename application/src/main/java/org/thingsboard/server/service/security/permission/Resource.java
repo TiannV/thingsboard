@@ -43,6 +43,7 @@ public enum Resource {
     OTA_PACKAGE(EntityType.OTA_PACKAGE),
     EDGE(EntityType.EDGE),
     RPC(EntityType.RPC),
+    SCHEDULER_JOB(EntityType.SCHEDULER_JOB),
     QUEUE(EntityType.QUEUE),
     VERSION_CONTROL,
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,

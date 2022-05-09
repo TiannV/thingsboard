@@ -52,6 +52,7 @@ import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rpc.RpcService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.scheduler.SchedulerJobService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -123,6 +124,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
     @Autowired
     private RpcService rpcService;
+
+    @Autowired
+    private SchedulerJobService schedulerJobService;
 
     @Autowired
     private DataValidator<Tenant> tenantValidator;
@@ -242,6 +246,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         notificationTemplateService.deleteNotificationTemplatesByTenantId(tenantId);
         notificationTargetService.deleteNotificationTargetsByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
+        schedulerJobService.deleteSchedulerJobsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).build());

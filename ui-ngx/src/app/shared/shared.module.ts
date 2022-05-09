@@ -200,6 +200,8 @@ import { ColorPickerPanelComponent } from '@shared/components/color-picker/color
 import { TbIconComponent } from '@shared/components/icon.component';
 import { HintTooltipIconComponent } from '@shared/components/hint-tooltip-icon.component';
 import { StringAutocompleteComponent } from '@shared/components/string-autocomplete.component';
+import { TrustUrlPipe } from '@shared/pipe/trust-url.pipe';
+import { PaletteComponent } from '@shared/components/palette.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -215,6 +217,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbJsonPipe,
     FileSizePipe,
     DateAgoPipe,
+    TrustUrlPipe,
     SafePipe,
     ShortNumberPipe,
     {
@@ -340,6 +343,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TbJsonPipe,
     FileSizePipe,
     DateAgoPipe,
+    TrustUrlPipe,
     SafePipe,
     ShortNumberPipe,
     SelectableColumnsPipe,
@@ -379,7 +383,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MaterialIconsComponent,
     RuleChainSelectComponent,
     TbIconComponent,
-    HintTooltipIconComponent
+    HintTooltipIconComponent,
+    PaletteComponent,
+    ProtobufContentComponent
   ],
   imports: [
     CommonModule,
@@ -576,6 +582,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     KeyboardShortcutPipe,
     FileSizePipe,
     DateAgoPipe,
+    TrustUrlPipe,
     SafePipe,
     ShortNumberPipe,
     SelectableColumnsPipe,
@@ -615,7 +622,9 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MaterialIconsComponent,
     RuleChainSelectComponent,
     TbIconComponent,
-    HintTooltipIconComponent
+    HintTooltipIconComponent,
+    PaletteComponent,
+    ProtobufContentComponent
   ]
 })
 export class SharedModule { }

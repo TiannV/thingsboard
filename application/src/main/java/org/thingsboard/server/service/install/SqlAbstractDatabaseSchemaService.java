@@ -78,6 +78,7 @@ public abstract class SqlAbstractDatabaseSchemaService implements DatabaseSchema
     void executeQueryFromFile(String schemaIdxSql) throws SQLException, IOException {
         Path schemaIdxFile = Paths.get(installScripts.getDataDir(), SQL_DIR, schemaIdxSql);
         String sql = Files.readString(schemaIdxFile);
+        log.info("executeQueryFromFile schemaIdxFile: {}, sql:{}", schemaIdxFile, sql);
         try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
             conn.createStatement().execute(sql); //NOSONAR, ignoring because method used to load initial thingsboard database schema
         }

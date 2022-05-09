@@ -123,6 +123,7 @@ import { ImportExportService } from '@home/components/import-export/import-expor
 import { AuthState } from '@app/core/auth/auth.models';
 import { FiltersDialogComponent, FiltersDialogData } from '@home/components/filter/filters-dialog.component';
 import { Filters } from '@shared/models/query/query.models';
+// @ts-ignore
 import { ConnectedPosition, Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import {
@@ -150,6 +151,7 @@ import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-pag
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
+import { WhitelabelUtilsService } from '@core/services/whitelabel-utils.service';
 
 // @dynamic
 @Component({
@@ -350,6 +352,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               private viewContainerRef: ViewContainerRef,
               private cd: ChangeDetectorRef,
               private sanitizer: DomSanitizer,
+              public whiteLabelUtilsService: WhitelabelUtilsService,
               public elRef: ElementRef,
               private injector: Injector) {
     super(store);
