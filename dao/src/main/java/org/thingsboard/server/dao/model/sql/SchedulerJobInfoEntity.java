@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.SchedulerJobId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -29,18 +27,18 @@ import org.thingsboard.server.common.data.scheduler.SchedulerJobInfo;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.SearchTextEntity;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import java.util.UUID;
 
 @Data
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = ModelConstants.SCHEDULER_JOB_COLUMN_FAMILY_NAME)
 public final class SchedulerJobInfoEntity extends BaseSqlEntity<SchedulerJobInfo> implements SearchTextEntity<SchedulerJobInfo> {
 
@@ -61,11 +59,11 @@ public final class SchedulerJobInfoEntity extends BaseSqlEntity<SchedulerJobInfo
     @Column(name = ModelConstants.SCHEDULER_JOB_TYPE_PROPERTY)
     private String type;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.SCHEDULER_JOB_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.SCHEDULER_JOB_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 

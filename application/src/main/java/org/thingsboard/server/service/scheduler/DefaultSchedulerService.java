@@ -130,7 +130,7 @@ public class DefaultSchedulerService extends TbApplicationEventListener<Partitio
     protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
             log.debug("onTbApplicationEvent ServiceType is TB_CORE, processing queue {}", partitionChangeEvent);
-            subscribeQueue.add(partitionChangeEvent.getPartitions());
+            subscribeQueue.add(partitionChangeEvent.getCorePartitions());
             queuedExecutor.submit(this::pollInitStateFromDB);
         }
     }

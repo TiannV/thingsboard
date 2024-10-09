@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import {
   Component,
   ElementRef,
   Injector,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   QueryList,
@@ -85,7 +85,6 @@ import { Overlay, OverlayConfig, OverlayRef } from '@angular/cdk/overlay';
 import { SubscriptionEntityInfo } from '@core/api/widget-api.models';
 import { DatePipe } from '@angular/common';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import {
   DISPLAY_COLUMNS_PANEL_DATA,
@@ -94,11 +93,13 @@ import {
 import { ComponentPortal } from '@angular/cdk/portal';
 import { FormBuilder } from '@angular/forms';
 import { DEFAULT_OVERLAY_POSITIONS } from '@shared/models/overlay.models';
+import { DateFormatSettings } from '@shared/models/widget-settings.models';
 
 export interface TimeseriesTableWidgetSettings extends TableWidgetSettings {
   showTimestamp: boolean;
   showMilliseconds: boolean;
   hideEmptyLines: boolean;
+  dateFormat: DateFormatSettings;
 }
 
 interface TimeseriesWidgetLatestDataKeySettings extends TableWidgetDataKeySettings {
@@ -223,7 +224,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               private domSanitizer: DomSanitizer,
               private datePipe: DatePipe,
               private cd: ChangeDetectorRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -248,11 +250,13 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         }
       );
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-        if (showHidePageSize !== this.hidePageSize) {
-          this.hidePageSize = showHidePageSize;
-          this.cd.markForCheck();
-        }
+        this.zone.run(() => {
+          const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+          if (showHidePageSize !== this.hidePageSize) {
+            this.hidePageSize = showHidePageSize;
+            this.cd.markForCheck();
+          }
+        });
       });
       this.widgetResize$.observe(this.elementRef.nativeElement);
     }
@@ -305,6 +309,13 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     this.ctx.detectChanges();
   }
 
+  public onEditModeChanged() {
+    if (this.textSearchMode) {
+      this.ctx.hideTitlePanel = !this.ctx.isEdit;
+      this.ctx.detectChanges(true);
+    }
+  }
+
   private initialize() {
     this.ctx.widgetActions = [this.searchAction, this.columnDisplayAction];
 
@@ -320,7 +331,12 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     this.hideEmptyLines = isDefined(this.settings.hideEmptyLines) ? this.settings.hideEmptyLines : false;
     this.useEntityLabel = isDefined(this.widgetConfig.settings.useEntityLabel) ? this.widgetConfig.settings.useEntityLabel : false;
     this.showTimestamp = this.settings.showTimestamp !== false;
-    this.dateFormatFilter = (this.settings.showMilliseconds !== true) ? 'yyyy-MM-dd HH:mm:ss' :  'yyyy-MM-dd HH:mm:ss.SSS';
+    // For backward compatibility
+    if (isDefined(this.settings?.showMilliseconds) && this.settings?.showMilliseconds) {
+      this.dateFormatFilter = 'yyyy-MM-dd HH:mm:ss.SSS';
+    } else {
+      this.dateFormatFilter = isDefined(this.settings.dateFormat?.format) ? this.settings.dateFormat?.format : 'yyyy-MM-dd HH:mm:ss';
+    }
 
     this.rowStylesInfo = getRowStyleInfo(this.settings, 'rowData, ctx');
 
@@ -400,9 +416,10 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       }
     }
     if (this.sources.length) {
-      this.prepareDisplayedColumn();
-      this.sources[this.sourceIndex].displayedColumns =
-        this.displayedColumns[this.sourceIndex].filter(value => value.display).map(value => value.def);
+      this.sources.forEach((source, index) => {
+        this.prepareDisplayedColumn(index);
+        source.displayedColumns = this.displayedColumns[index].filter(value => value.display).map(value => value.def);
+      });
     }
     this.updateActiveEntityInfo();
   }
@@ -430,8 +447,6 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       });
 
       const source = this.sources[this.sourceIndex];
-
-      this.prepareDisplayedColumn();
 
       const providers: StaticProvider[] = [
         {
@@ -465,11 +480,11 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     }
   }
 
-  private prepareDisplayedColumn() {
-    if (!this.displayedColumns[this.sourceIndex]) {
-      this.displayedColumns[this.sourceIndex] = this.sources[this.sourceIndex].displayedColumns.map(value => {
+  private prepareDisplayedColumn(index: number) {
+    if (!this.displayedColumns[index]) {
+      this.displayedColumns[index] = this.sources[index].displayedColumns.map(value => {
         let title = '';
-        const header = this.sources[this.sourceIndex].header.find(column => column.index.toString() === value);
+        const header = this.sources[index].header.find(column => column.index.toString() === value);
         if (value === '0') {
           title = 'Timestamp';
         } else if (value === 'actions') {

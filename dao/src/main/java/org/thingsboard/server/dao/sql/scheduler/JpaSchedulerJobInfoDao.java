@@ -53,7 +53,7 @@ public class JpaSchedulerJobInfoDao extends JpaAbstractSearchTextDao<SchedulerJo
 
     @Override
     public CrudRepository<SchedulerJobInfoEntity, UUID> getCrudRepository() {
-        return schedulerJobInfoRepository;
+        return null;
     }
 
     @Override

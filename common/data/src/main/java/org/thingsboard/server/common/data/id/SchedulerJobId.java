@@ -17,13 +17,13 @@ package org.thingsboard.server.common.data.id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+// import io.swagger.annotations.ApiModel;
+// import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
 
-@ApiModel
 public class SchedulerJobId extends UUIDBased implements EntityId{
 
     @JsonCreator
@@ -36,7 +36,8 @@ public class SchedulerJobId extends UUIDBased implements EntityId{
     }
 
 
-    @ApiModelProperty(position = 2, required = true, value = "string", example = "SCHEDULER_JOB", allowableValues = "SCHEDULER_JOB")
+    // @ApiModelProperty(position = 2, required = true, value = "string", example = "SCHEDULER_JOB", allowableValues = "SCHEDULER_JOB")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "SCHEDULER_JOB", allowableValues = "SCHEDULER_JOB")
     @Override
     public EntityType getEntityType() {
         return EntityType.SCHEDULER_JOB;

@@ -23,7 +23,7 @@ import org.thingsboard.server.dao.model.SearchTextEntity;
  */
 public abstract class JpaAbstractSearchTextDao<E extends BaseEntity<D>, D> extends JpaAbstractDao<E, D> {
 
-    @Override
+    // @Override
     protected void setSearchText(E entity) {
         ((SearchTextEntity) entity).setSearchText(((SearchTextEntity) entity).getSearchTextSource().toLowerCase());
     }

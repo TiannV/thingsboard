@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -47,13 +47,20 @@ import {
   WidgetActionsApi,
   WidgetSubscriptionApi
 } from '@core/api/widget-api.models';
-import { ChangeDetectorRef, Injector, NgModuleRef, NgZone, Type } from '@angular/core';
+import { ChangeDetectorRef, Injector, NgZone, Type } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { RafService } from '@core/services/raf.service';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetLayout } from '@shared/models/dashboard.models';
-import { createLabelFromDatasource, formatValue, hasDatasourceLabelsVariables, isDefined } from '@core/utils';
+import {
+  createLabelFromDatasource,
+  createLabelFromSubscriptionEntityInfo,
+  formatValue,
+  getEntityDetailsPageURL,
+  hasDatasourceLabelsVariables,
+  isDefined
+} from '@core/utils';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -91,10 +98,11 @@ import * as RxJSOperators from 'rxjs/operators';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { EntityId } from '@shared/models/id/entity-id';
 import { AlarmQuery, AlarmSearchStatus, AlarmStatus } from '@app/shared/models/alarm.models';
-import { MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
+import { ImagePipe, MillisecondsToTimeStringPipe, TelemetrySubscriber } from '@app/shared/public-api';
 import { UserId } from '@shared/models/id/user-id';
 import { UserSettingsService } from '@core/http/user-settings.service';
-import { DynamicComponentModule } from '@core/services/dynamic-component-factory.service';
+import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface IWidgetAction {
   name: string;
@@ -116,7 +124,7 @@ export interface WidgetAction extends IWidgetAction {
 }
 
 export interface IDashboardWidget {
-  updateWidgetParams();
+  updateWidgetParams(): void;
 }
 
 export class WidgetContext {
@@ -171,6 +179,14 @@ export class WidgetContext {
     }
   }
 
+  get dashboardPageElement(): HTMLElement {
+    return this.dashboard?.stateController?.dashboardCtrl?.elRef?.nativeElement;
+  }
+
+  get dashboardContentElement(): HTMLElement {
+    return this.dashboard?.stateController?.dashboardCtrl?.dashboardContent?.nativeElement;
+  }
+
   authService: AuthService;
   deviceService: DeviceService;
   assetService: AssetService;
@@ -186,9 +202,11 @@ export class WidgetContext {
   customDialog: CustomDialogService;
   resourceService: ResourceService;
   userSettingsService: UserSettingsService;
+  utilsService: UtilsService;
   telemetryWsService: TelemetryWebsocketService;
   telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;
+  imagePipe: ImagePipe;
   milliSecondsToTimeString: MillisecondsToTimeStringPipe;
   translate: TranslateService;
   http: HttpClient;
@@ -246,7 +264,8 @@ export class WidgetContext {
   };
 
   utils: IWidgetUtils = {
-    formatValue
+    formatValue,
+    getEntityDetailsPageURL
   };
 
   $widgetElement: JQuery<HTMLElement>;
@@ -256,6 +275,7 @@ export class WidgetContext {
   height: number;
   $scope: IDynamicWidgetComponent;
   isEdit: boolean;
+  isPreview: boolean;
   isMobile: boolean;
   toastTargetId: string;
 
@@ -272,6 +292,7 @@ export class WidgetContext {
   timeWindow?: WidgetTimewindow;
 
   embedTitlePanel?: boolean;
+  overflowVisible?: boolean;
 
   hideTitlePanel = false;
 
@@ -338,35 +359,35 @@ export class WidgetContext {
   showSuccessToast(message: string, duration: number = 1000,
                    verticalPosition: NotificationVerticalPosition = 'bottom',
                    horizontalPosition: NotificationHorizontalPosition = 'left',
-                   target: string = 'dashboardRoot') {
-    this.showToast('success', message, duration, verticalPosition, horizontalPosition, target);
+                   target: string = 'dashboardRoot', modern = false) {
+    this.showToast('success', message, duration, verticalPosition, horizontalPosition, target, modern);
   }
 
   showInfoToast(message: string,
                 verticalPosition: NotificationVerticalPosition = 'bottom',
                 horizontalPosition: NotificationHorizontalPosition = 'left',
-                target: string = 'dashboardRoot') {
-    this.showToast('info', message, undefined, verticalPosition, horizontalPosition, target);
+                target: string = 'dashboardRoot', modern = false) {
+    this.showToast('info', message, undefined, verticalPosition, horizontalPosition, target, modern);
   }
 
   showWarnToast(message: string,
                 verticalPosition: NotificationVerticalPosition = 'bottom',
                 horizontalPosition: NotificationHorizontalPosition = 'left',
-                target: string = 'dashboardRoot') {
-    this.showToast('warn', message, undefined, verticalPosition, horizontalPosition, target);
+                target: string = 'dashboardRoot', modern = false) {
+    this.showToast('warn', message, undefined, verticalPosition, horizontalPosition, target, modern);
   }
 
   showErrorToast(message: string,
                  verticalPosition: NotificationVerticalPosition = 'bottom',
                  horizontalPosition: NotificationHorizontalPosition = 'left',
-                 target: string = 'dashboardRoot') {
-    this.showToast('error', message, undefined, verticalPosition, horizontalPosition, target);
+                 target: string = 'dashboardRoot', modern = false) {
+    this.showToast('error', message, undefined, verticalPosition, horizontalPosition, target, modern);
   }
 
   showToast(type: NotificationType, message: string, duration: number,
             verticalPosition: NotificationVerticalPosition = 'bottom',
             horizontalPosition: NotificationHorizontalPosition = 'left',
-            target: string = 'dashboardRoot') {
+            target: string = 'dashboardRoot', modern = false) {
     this.store.dispatch(new ActionNotificationShow(
       {
         message,
@@ -376,7 +397,8 @@ export class WidgetContext {
         horizontalPosition,
         target,
         panelClass: this.widgetNamespace,
-        forceDismiss: true
+        forceDismiss: true,
+        modern
       }));
   }
 
@@ -434,6 +456,8 @@ export class WidgetContext {
       labelPattern.destroy();
     }
     this.labelPatterns.clear();
+    this.width = undefined;
+    this.height = undefined;
     this.destroyed = true;
   }
 
@@ -481,9 +505,14 @@ export class LabelVariablePattern {
 
   update() {
     let label = this.pattern;
-    const datasource = this.ctx.defaultSubscription?.firstDatasource;
-    if (this.hasVariables && datasource) {
-      label = createLabelFromDatasource(datasource, label);
+    if (this.hasVariables) {
+      if (this.ctx.defaultSubscription?.type === widgetType.rpc) {
+        const entityInfo = this.ctx.defaultSubscription.getFirstEntityInfo();
+        label = createLabelFromSubscriptionEntityInfo(entityInfo, label);
+      } else {
+        const datasource = this.ctx.defaultSubscription?.firstDatasource;
+        label = createLabelFromDatasource(datasource, label);
+      }
     }
     if (this.labelSubject.value !== label) {
       this.labelSubject.next(label);
@@ -502,7 +531,7 @@ export interface IDynamicWidgetComponent {
   executingRpcRequest: boolean;
   rpcEnabled: boolean;
   rpcErrorText: string;
-  rpcRejection: HttpErrorResponse;
+  rpcRejection: HttpErrorResponse | Error;
   raf: RafService;
   [key: string]: any;
 }
@@ -511,6 +540,7 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   widgetName: string;
   fullFqn: string;
   deprecated: boolean;
+  scada: boolean;
   typeSettingsSchema?: string | any;
   typeDataKeySettingsSchema?: string | any;
   typeLatestDataKeySettingsSchema?: string | any;
@@ -518,7 +548,6 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   description?: string;
   tags?: string[];
   componentType?: Type<IDynamicWidgetComponent>;
-  componentModuleRef?: NgModuleRef<DynamicComponentModule>;
 }
 
 export interface WidgetConfigComponentData {
@@ -532,6 +561,7 @@ export interface WidgetConfigComponentData {
   settingsSchema: JsonSettingsSchema;
   dataKeySettingsSchema: JsonSettingsSchema;
   latestDataKeySettingsSchema: JsonSettingsSchema;
+  dataKeySettingsFunction: DataKeySettingsFunction;
   settingsDirective: string;
   dataKeySettingsDirective: string;
   latestDataKeySettingsDirective: string;
@@ -544,6 +574,7 @@ export const MissingWidgetType: WidgetInfo = {
   widgetName: 'Widget type not found',
   fullFqn: 'undefined',
   deprecated: false,
+  scada: false,
   sizeX: 8,
   sizeY: 6,
   resources: [],
@@ -569,6 +600,7 @@ export const ErrorWidgetType: WidgetInfo = {
   widgetName: 'Error loading widget',
   fullFqn: 'error',
   deprecated: false,
+  scada: false,
   sizeX: 8,
   sizeY: 6,
   resources: [],
@@ -611,6 +643,7 @@ export const toWidgetInfo = (widgetTypeEntity: WidgetType): WidgetInfo => ({
   widgetName: widgetTypeEntity.name,
   fullFqn: fullWidgetTypeFqn(widgetTypeEntity),
   deprecated: widgetTypeEntity.deprecated,
+  scada: widgetTypeEntity.scada,
   type: widgetTypeEntity.descriptor.type,
   sizeX: widgetTypeEntity.descriptor.sizeX,
   sizeY: widgetTypeEntity.descriptor.sizeY,
@@ -638,7 +671,7 @@ export const detailsToWidgetInfo = (widgetTypeDetailsEntity: WidgetTypeDetails):
 };
 
 export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
-                             createdTime: number): WidgetType => {
+                             createdTime: number, version: number): WidgetType => {
   const descriptor: WidgetTypeDescriptor = {
     type: widgetInfo.type,
     sizeX: widgetInfo.sizeX,
@@ -661,16 +694,18 @@ export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     id,
     tenantId,
     createdTime,
+    version,
     fqn: widgetTypeFqn(widgetInfo.fullFqn),
     name: widgetInfo.widgetName,
     deprecated: widgetInfo.deprecated,
+    scada: widgetInfo.scada,
     descriptor
   };
 };
 
 export const toWidgetTypeDetails = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
-                                    createdTime: number): WidgetTypeDetails => {
-  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, createdTime);
+                                    createdTime: number, version: number): WidgetTypeDetails => {
+  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, createdTime, version);
   return {
     ...widgetTypeEntity,
     description: widgetInfo.description,

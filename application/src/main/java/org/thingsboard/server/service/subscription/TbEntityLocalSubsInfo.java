@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Information about the local websocket subscriptions.
@@ -41,8 +39,6 @@ public class TbEntityLocalSubsInfo {
     private final TenantId tenantId;
     @Getter
     private final EntityId entityId;
-    @Getter
-    private final Lock lock = new ReentrantLock();
     @Getter
     private final Set<TbSubscription<?>> subs = ConcurrentHashMap.newKeySet();
     private volatile TbSubscriptionsInfo state = new TbSubscriptionsInfo();

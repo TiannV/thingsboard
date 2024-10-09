@@ -20,7 +20,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
 import { SchedulerJobTableConfigResolve } from '@home/pages/scheduler-job/scheduler-job-table-config.resolve';
 
-const routes: Routes = [
+export const scheduleRoutes: Routes = [
   {
     path: 'schedulerJobs',
     component: EntitiesTableComponent,
@@ -35,6 +35,14 @@ const routes: Routes = [
     resolve: {
       entitiesTableConfig: SchedulerJobTableConfigResolve
     }
+  }
+];
+
+const routes: Routes = [
+  {
+    path: 'schedulerJobs',
+    pathMatch: 'full',
+    redirectTo: '/features/schedulerJobs'
   }
 ];
 

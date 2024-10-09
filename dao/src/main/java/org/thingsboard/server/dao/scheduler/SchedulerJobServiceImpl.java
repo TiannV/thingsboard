@@ -35,6 +35,7 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantDao;
@@ -61,6 +62,9 @@ public class SchedulerJobServiceImpl extends AbstractEntityService implements Sc
     @Autowired
     @Lazy
     private TbTenantProfileCache tenantProfileCache;
+
+    @Autowired
+    private RelationService relationService;
 
     @Override
     public SchedulerJob findSchedulerJobById(TenantId tenantId, SchedulerJobId schedulerJobId) {
@@ -112,7 +116,7 @@ public class SchedulerJobServiceImpl extends AbstractEntityService implements Sc
     public void deleteSchedulerJob(TenantId tenantId, SchedulerJobId schedulerJobId) {
         log.trace("Executing deleteSchedulerJob [{}]", schedulerJobId);
         Validator.validateId(schedulerJobId, INCORRECT_SCHEDULER_JOB_ID + schedulerJobId);
-        deleteEntityRelations(tenantId, schedulerJobId);
+        relationService.removeRelations(tenantId, schedulerJobId);
         schedulerJobDao.removeById(tenantId, schedulerJobId.getId());
     }
 

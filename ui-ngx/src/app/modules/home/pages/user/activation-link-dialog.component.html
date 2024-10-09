@@ -1,6 +1,6 @@
 <!--
 
-    Copyright © 2016-2023 The Thingsboard Authors
+    Copyright © 2016-2024 The Thingsboard Authors
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content tb-toast toastTarget="activationLinkDialogContent">
     <div class="mat-content" fxLayout="column">
-      <span [innerHTML]="'user.activation-link-text' | translate: {activationLink: activationLink}"></span>
+      <span [innerHTML]="'user.activation-link-text' | translate: {activationLink: activationLink, activationLinkTtl: activationLinkTtl}"></span>
       <div fxLayout="row" fxLayoutAlign="start center">
         <pre class="tb-highlight" fxFlex><code>{{ activationLink }}</code></pre>
         <button mat-icon-button

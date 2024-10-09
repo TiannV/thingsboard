@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import { Resolve, Router } from '@angular/router';
-import { Resource, ResourceInfo, ResourceTypeTranslationMap } from '@shared/models/resource.models';
+import { Resource, ResourceInfo, ResourceType, ResourceTypeTranslationMap } from '@shared/models/resource.models';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { DatePipe } from '@angular/common';
@@ -84,7 +84,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     this.config.deleteEntitiesContent = () => this.translate.instant('resource.delete-resources-text');
 
     this.config.entitiesFetchFunction = pageLink => this.resourceService.getResources(pageLink, this.config.componentsData.resourceType);
-    this.config.loadEntity = id => this.resourceService.getResource(id.id);
+    this.config.loadEntity = id => this.resourceService.getResourceInfo(id.id);
     this.config.saveEntity = resource => this.saveResource(resource);
     this.config.deleteEntity = id => this.resourceService.deleteResource(id.id);
 
@@ -118,7 +118,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     const authUser = getCurrentAuthUser(this.store);
     this.config.deleteEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
-    this.config.detailsReadonly = (resource) => !this.isResourceEditable(resource, authUser.authority);
+    this.config.detailsReadonly = (resource) => this.detailsReadonly(resource, authUser.authority);
     return this.config;
   }
 
@@ -147,6 +147,13 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
         return true;
     }
     return false;
+  }
+
+  private detailsReadonly(resource: ResourceInfo, authority: Authority): boolean {
+    if (resource?.resourceType === ResourceType.LWM2M_MODEL) {
+      return true;
+    }
+    return !this.isResourceEditable(resource, authority);
   }
 
   private isResourceEditable(resource: ResourceInfo, authority: Authority): boolean {

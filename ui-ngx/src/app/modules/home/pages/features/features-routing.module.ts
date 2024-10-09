@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -18,7 +18,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
 import { otaUpdatesRoutes } from '@home/pages/ota-update/ota-update-routing.module';
+import { scheduleRoutes } from '@home/pages/scheduler-job/scheduler-job-routing.module';
 import { vcRoutes } from '@home/pages/vc/vc-routing.module';
+import { MenuId } from '@core/services/menu.models';
 
 const routes: Routes = [
   {
@@ -26,8 +28,7 @@ const routes: Routes = [
     data: {
       auth: [Authority.TENANT_ADMIN],
       breadcrumb: {
-        label: 'feature.advanced-features',
-        icon: 'construction'
+        menuId: MenuId.features
       }
     },
     children: [
@@ -40,7 +41,8 @@ const routes: Routes = [
         }
       },
       ...otaUpdatesRoutes,
-      ...vcRoutes
+      ...vcRoutes,
+      ...scheduleRoutes
     ]
   }
 ];

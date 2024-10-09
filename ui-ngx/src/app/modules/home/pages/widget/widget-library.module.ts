@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -28,19 +28,20 @@ import { WidgetTypeComponent } from '@home/pages/widget/widget-type.component';
 import { WidgetTypeTabsComponent } from '@home/pages/widget/widget-type-tabs.component';
 import { WidgetsBundleWidgetsComponent } from '@home/pages/widget/widgets-bundle-widgets.component';
 import { WidgetTypeAutocompleteComponent } from '@home/pages/widget/widget-type-autocomplete.component';
+import { WidgetsBundleDialogComponent } from '@home/pages/widget/widgets-bundle-dialog.component';
 
 @NgModule({
   declarations: [
     WidgetTypeComponent,
     WidgetsBundleComponent,
-    // WidgetLibraryComponent,
     WidgetTypeAutocompleteComponent,
     WidgetsBundleWidgetsComponent,
     WidgetEditorComponent,
     SelectWidgetTypeDialogComponent,
     SaveWidgetTypeAsDialogComponent,
     WidgetTypeTabsComponent,
-    WidgetsBundleTabsComponent
+    WidgetsBundleTabsComponent,
+    WidgetsBundleDialogComponent
   ],
   imports: [
     CommonModule,

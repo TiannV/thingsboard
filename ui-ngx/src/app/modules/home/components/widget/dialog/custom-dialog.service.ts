@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -60,11 +60,10 @@ export class CustomDialogService {
     }
     return this.dynamicComponentFactoryService.createDynamicComponent(
       class CustomDialogComponentInstance extends CustomDialogComponent {}, template, modules).pipe(
-      mergeMap((componentData) => {
+      mergeMap((componentType) => {
           const dialogData: CustomDialogContainerData = {
             controller,
-            customComponentType: componentData.componentType,
-            customComponentModuleRef: componentData.componentModuleRef,
+            customComponentType: componentType,
             data
           };
           let dialogConfig: MatDialogConfig = {
@@ -79,7 +78,7 @@ export class CustomDialogService {
             CustomDialogContainerComponent,
             dialogConfig).afterClosed().pipe(
             tap(() => {
-              this.dynamicComponentFactoryService.destroyDynamicComponent(componentData.componentType);
+              this.dynamicComponentFactoryService.destroyDynamicComponent(componentType);
             })
           );
         }

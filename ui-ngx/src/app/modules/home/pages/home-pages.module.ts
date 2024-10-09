@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -44,8 +44,9 @@ import { FeaturesModule } from '@home/pages/features/features.module';
 import { NotificationModule } from '@home/pages/notification/notification.module';
 import { AccountModule } from '@home/pages/account/account.module';
 import { SchedulerJobModule } from '@home/pages/scheduler-job/scheduler-job.module';
-import {MODULES_MAP} from "@shared/models/constants";
-import {modulesMap} from "@modules/common/modules-map";
+import { MODULES_MAP } from "@shared/models/constants";
+import { modulesMap } from "@modules/common/modules-map";
+import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
 
 @NgModule({
   exports: [
@@ -76,13 +77,8 @@ import {modulesMap} from "@modules/common/modules-map";
     SchedulerJobModule,
     UserModule,
     VcModule,
-    AccountModule
-  ],
-  providers: [
-    {
-      provide: MODULES_MAP,
-      useValue: modulesMap
-    }
+    AccountModule,
+    ScadaSymbolModule
   ]
 })
 export class HomePagesModule { }

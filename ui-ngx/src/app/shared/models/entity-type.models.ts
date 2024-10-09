@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -40,11 +40,15 @@ export enum EntityType {
   SCHEDULER_JOB = 'SCHEDULER_JOB',
   RPC = 'RPC',
   QUEUE = 'QUEUE',
+  QUEUE_STATS = 'QUEUE_STATS',
   NOTIFICATION = 'NOTIFICATION',
   NOTIFICATION_REQUEST = 'NOTIFICATION_REQUEST',
   NOTIFICATION_RULE = 'NOTIFICATION_RULE',
   NOTIFICATION_TARGET = 'NOTIFICATION_TARGET',
-  NOTIFICATION_TEMPLATE = 'NOTIFICATION_TEMPLATE'
+  NOTIFICATION_TEMPLATE = 'NOTIFICATION_TEMPLATE',
+  OAUTH2_CLIENT = 'OAUTH2_CLIENT',
+  DOMAIN = 'DOMAIN',
+  MOBILE_APP = 'MOBILE_APP'
 }
 
 export enum AliasEntityType {
@@ -327,6 +331,8 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       EntityType.TB_RESOURCE,
       {
         type: 'entity.type-tb-resource',
+        typePlural: 'entity.type-tb-resources',
+        list: 'entity.list-of-tb-resources',
         details: 'resource.resource-library-details',
         add: 'resource.add',
         noEntities: 'resource.no-resource-text',
@@ -370,6 +376,17 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         search: 'queue.search',
         details: 'queue.details',
         selectedEntities: 'queue.selected-queues'
+      }
+    ],
+    [
+      EntityType.QUEUE_STATS,
+      {
+        type: 'entity.type-queue-stats',
+        typePlural: 'entity.type-queues-stats',
+        list: 'queue-statistics.list-of-queue-statistics',
+        noEntities: 'queue-statistics.no-queue-statistics-text',
+        selectedEntities: 'queue-statistics.selected-queue-statistics',
+        nameStartsWith: 'queue-statistics.queue-statistics-starts-with',
       }
     ],
     [
@@ -420,6 +437,42 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
         noEntities: 'notification.no-notification-templates',
         search: 'notification.search-templates',
         selectedEntities: 'notification.selected-template'
+      }
+    ],
+    [
+      EntityType.DOMAIN,
+      {
+        type: 'entity.type-domain',
+        typePlural: 'entity.type-domains',
+        list: 'entity.list-of-domains',
+        details: 'admin.oauth2.domain-details',
+        add: 'admin.oauth2.add-domain',
+        noEntities: 'admin.oauth2.no-domains',
+        search: 'admin.oauth2.search-domains'
+      }
+    ],
+    [
+      EntityType.OAUTH2_CLIENT,
+      {
+        type: 'entity.type-oauth2-client',
+        typePlural: 'entity.type-oauth2-clients',
+        list: 'entity.list-of-oauth2-clients',
+        details: 'admin.oauth2.client-details',
+        add: 'admin.oauth2.add-client',
+        noEntities: 'admin.oauth2.no-oauth2-clients',
+        search: 'admin.oauth2.search-oauth2-clients'
+      }
+    ],
+    [
+      EntityType.MOBILE_APP,
+      {
+        type: 'entity.type-mobile-app',
+        typePlural: 'entity.type-mobile-apps',
+        list: 'entity.list-of-mobile-apps',
+        details: 'admin.oauth2.mobile-app-details',
+        add: 'admin.oauth2.add-mobile-app',
+        noEntities: 'admin.oauth2.no-mobile-apps',
+        search: 'admin.oauth2.search-mobile-apps'
       }
     ]
   ]
@@ -534,6 +587,24 @@ export const entityTypeResources = new Map<EntityType, EntityTypeResource<BaseDa
       {
         helpLinkId: 'queue'
       }
+    ],
+    [
+      EntityType.OAUTH2_CLIENT,
+      {
+        helpLinkId: 'oauth2Settings'
+      }
+    ],
+    [
+      EntityType.DOMAIN,
+      {
+        helpLinkId: 'oauth2Settings'
+      }
+    ],
+    [
+      EntityType.MOBILE_APP,
+      {
+        helpLinkId: 'oauth2Settings'
+      }
     ]
   ]
 );
@@ -553,7 +624,12 @@ export const baseDetailsPageByEntityType = new Map<EntityType, string>([
   [EntityType.ENTITY_VIEW, '/entities/entityViews'],
   [EntityType.TB_RESOURCE, '/resources/resources-library'],
   [EntityType.OTA_PACKAGE, '/features/otaUpdates'],
-  [EntityType.QUEUE, '/settings/queues']
+  [EntityType.QUEUE, '/settings/queues'],
+  [EntityType.WIDGETS_BUNDLE, '/resources/widgets-library/widgets-bundles/details'],
+  [EntityType.WIDGET_TYPE, '/resources/widgets-library/widget-types/details'],
+  [EntityType.OAUTH2_CLIENT, '/security-settings/oauth2/clients/details'],
+  [EntityType.DOMAIN, '/security-settings/oauth2/clients/details'],
+  [EntityType.MOBILE_APP, '/security-settings/oauth2/clients/details']
 ]);
 
 export interface EntitySubtype {

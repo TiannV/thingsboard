@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 ///
 
 import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { startWith, skip, Subject } from 'rxjs';
+import { skip, startWith, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
@@ -32,7 +32,9 @@ import { instanceOfSearchableComponent, ISearchableComponent } from '@home/model
 import { ActiveComponentService } from '@core/services/active-component.service';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { FormBuilder } from '@angular/forms';
-import {WhitelabelUtilsService} from '@core/services/whitelabel-utils.service';
+import { WhitelabelUtilsService } from '@core/services/whitelabel-utils.service';
+import { ActivatedRoute } from '@angular/router';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-home',
@@ -62,18 +64,18 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   searchEnabled = false;
   showSearch = false;
-  textSearch = this.fb.control('', {nonNullable: true});
+  textSearch = this.fb.control('', { nonNullable: true });
 
   hideLoadingBar = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
-              @Inject(WINDOW) private window: Window,
-              private activeComponentService: ActiveComponentService,
-              public whiteLabelUtilsService: WhitelabelUtilsService,
-              public breakpointObserver: BreakpointObserver,
-              private fb: FormBuilder) {
+    @Inject(WINDOW) private window: Window,
+    private activeComponentService: ActiveComponentService,
+    public whiteLabelUtilsService: WhitelabelUtilsService,
+    public breakpointObserver: BreakpointObserver,
+    private fb: FormBuilder) {
     super(store);
   }
 
@@ -87,14 +89,14 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
       .observe(MediaBreakpoints['gt-sm'])
       .pipe(takeUntil(this.destroy$))
       .subscribe((state: BreakpointState) => {
-          if (state.matches) {
-            this.sidenavMode = 'side';
-            this.sidenavOpened = true;
-          } else {
-            this.sidenavMode = 'over';
-            this.sidenavOpened = false;
-          }
+        if (state.matches) {
+          this.sidenavMode = 'side';
+          this.sidenavOpened = true;
+        } else {
+          this.sidenavMode = 'over';
+          this.sidenavOpened = false;
         }
+      }
       );
   }
 
@@ -146,9 +148,18 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   private updateActiveComponent(activeComponent: any) {
     this.showSearch = false;
-    this.textSearch.reset('', {emitEvent: false});
+    this.hideLoadingBar = false;
+    this.textSearch.reset('', { emitEvent: false });
     this.activeComponent = activeComponent;
-    this.hideLoadingBar = activeComponent && activeComponent instanceof RouterTabsComponent;
+
+    if (activeComponent && activeComponent instanceof RouterTabsComponent
+      && isDefinedAndNotNull(this.activeComponent.activatedRoute?.snapshot?.data?.showMainLoadingBar)) {
+      this.hideLoadingBar = !this.activeComponent.activatedRoute.snapshot.data.showMainLoadingBar;
+    } else if (activeComponent && activeComponent instanceof PageComponent
+      && isDefinedAndNotNull(this.activeComponent?.showMainLoadingBar)) {
+      this.hideLoadingBar = !this.activeComponent.showMainLoadingBar;
+    }
+
     if (this.activeComponent && instanceOfSearchableComponent(this.activeComponent)) {
       this.searchEnabled = true;
       this.searchableComponent = this.activeComponent;

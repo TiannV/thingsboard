@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -105,6 +105,14 @@ public class EntityIdFactory {
                 return new NotificationId(uuid);
             case SCHEDULER_JOB:
                 return new SchedulerJobId(uuid);
+            case QUEUE_STATS:
+                return new QueueStatsId(uuid);
+            case OAUTH2_CLIENT:
+                return new OAuth2ClientId(uuid);
+            case MOBILE_APP:
+                return new MobileAppId(uuid);
+            case DOMAIN:
+                return new DomainId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }
@@ -147,6 +155,16 @@ public class EntityIdFactory {
                 return new QueueId(uuid);
             case TB_RESOURCE:
                 return new TbResourceId(uuid);
+            case NOTIFICATION_RULE:
+                return new NotificationRuleId(uuid);
+            case NOTIFICATION_TARGET:
+                return new NotificationTargetId(uuid);
+            case NOTIFICATION_TEMPLATE:
+                return new NotificationTemplateId(uuid);
+            case OAUTH2_CLIENT:
+                return new OAuth2ClientId(uuid);
+            case DOMAIN:
+                return new DomainId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }

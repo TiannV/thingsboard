@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -42,11 +42,12 @@ import {
   getSingleTsValueByDataKey,
   overlayStyle
 } from '@shared/models/widget-settings.models';
-import { WidgetComponent } from '@home/components/widget/widget.component';
 import { formatValue, isDefinedAndNotNull, isNumeric } from '@core/utils';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { Path, Svg, SVG, Text } from '@svgdotjs/svg.js';
 import { DataKey } from '@shared/models/widget.models';
+import { Observable } from 'rxjs';
+import { ImagePipe } from '@shared/pipe/image.pipe';
+import { DomSanitizer } from '@angular/platform-browser';
 
 const shapeSize = 180;
 const cx = shapeSize / 2;
@@ -87,8 +88,9 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
 
   centerValueColor: ColorProcessor;
 
-  backgroundStyle: ComponentStyle = {};
+  backgroundStyle$: Observable<ComponentStyle>;
   overlayStyle: ComponentStyle = {};
+  padding: string;
 
   shapeResize$: ResizeObserver;
 
@@ -108,7 +110,8 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
   private windDirection = 0;
   private centerValueText = 'N/A';
 
-  constructor(private widgetComponent: WidgetComponent,
+  constructor(private imagePipe: ImagePipe,
+              private sanitizer: DomSanitizer,
               private renderer: Renderer2,
               private cd: ChangeDetectorRef) {
   }
@@ -135,8 +138,9 @@ export class WindSpeedDirectionWidgetComponent implements OnInit, OnDestroy, Aft
 
     this.centerValueColor = ColorProcessor.fromSettings(this.settings.centerValueColor);
 
-    this.backgroundStyle = backgroundStyle(this.settings.background);
+    this.backgroundStyle$ = backgroundStyle(this.settings.background, this.imagePipe, this.sanitizer);
     this.overlayStyle = overlayStyle(this.settings.background.overlay);
+    this.padding = this.settings.background.overlay.enabled ? undefined : this.settings.padding;
 
     this.hasCardClickAction = this.ctx.actionsApi.getActionDescriptors('cardClick').length > 0;
   }

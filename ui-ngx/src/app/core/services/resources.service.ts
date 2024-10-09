@@ -1,5 +1,5 @@
 ///
-/// Copyright © 2016-2023 The Thingsboard Authors
+/// Copyright © 2016-2024 The Thingsboard Authors
 ///
 /// Licensed under the Apache License, Version 2.0 (the "License");
 /// you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import {
   Injectable,
   Injector,
   ModuleWithComponentFactories,
-  Type
+  Type, ɵNG_MOD_DEF
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { forkJoin, Observable, ReplaySubject, throwError } from 'rxjs';
@@ -33,7 +33,8 @@ import { AuthService } from '@core/auth/auth.service';
 import { select, Store } from '@ngrx/store';
 import { selectIsAuthenticated } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
+import { RequestConfig } from '@core/http/http-utils';
 
 declare const System;
 
@@ -49,7 +50,6 @@ export class ResourcesService {
 
   private loadedJsonResources: { [url: string]: ReplaySubject<any> } = {};
   private loadedResources: { [url: string]: ReplaySubject<void> } = {};
-  private loadedModules: { [url: string]: ReplaySubject<Type<any>[]> } = {};
   private loadedModulesAndFactories: { [url: string]: ReplaySubject<ModulesWithFactories> } = {};
 
   private anchor = this.document.getElementsByTagName('head')[0] || this.document.getElementsByTagName('body')[0];
@@ -104,6 +104,37 @@ export class ResourcesService {
       return throwError(() => new Error(`Unsupported file type: ${fileType}`));
     }
     return this.loadResourceByType(fileType, url);
+  }
+
+  public downloadResource(downloadUrl: string, config?: RequestConfig): Observable<any> {
+    return this.http.get(downloadUrl, {...config, ...{
+      responseType: 'arraybuffer',
+      observe: 'response'
+    }}).pipe(
+      map((response) => {
+        const headers = response.headers;
+        const filename = headers.get('x-filename');
+        const contentType = headers.get('content-type');
+        const linkElement = document.createElement('a');
+        try {
+          const blob = new Blob([response.body], {type: contentType});
+          const url = URL.createObjectURL(blob);
+          linkElement.setAttribute('href', url);
+          linkElement.setAttribute('download', filename);
+          const clickEvent = new MouseEvent('click',
+            {
+              view: window,
+              bubbles: true,
+              cancelable: false
+            }
+          );
+          linkElement.dispatchEvent(clickEvent);
+          return null;
+        } catch (e) {
+          throw e;
+        }
+      })
+    );
   }
 
   public loadFactories(resourceId: string | TbResourceId, modulesMap: IModulesMap): Observable<ModulesWithFactories> {
@@ -169,71 +200,6 @@ export class ResourcesService {
     );
   }
 
-  public loadModules(resourceId: string | TbResourceId, modulesMap: IModulesMap): Observable<Type<any>[]> {
-    const url = this.getDownloadUrl(resourceId);
-    if (this.loadedModules[url]) {
-      return this.loadedModules[url].asObservable();
-    }
-    modulesMap.init();
-    const meta = this.getMetaInfo(resourceId);
-    const subject = new ReplaySubject<Type<any>[]>();
-    this.loadedModules[url] = subject;
-    import('@angular/compiler').then(
-      () => {
-        System.import(url, undefined, meta).then(
-          (module) => {
-            try {
-              let modules;
-              try {
-                modules = this.extractNgModules(module);
-              } catch (e) {
-                console.error(e);
-              }
-              if (modules && modules.length) {
-                const tasks: Promise<ModuleWithComponentFactories<any>>[] = [];
-                for (const m of modules) {
-                  tasks.push(this.compiler.compileModuleAndAllComponentsAsync(m));
-                }
-                forkJoin(tasks).subscribe((compiled) => {
-                    try {
-                      for (const c of compiled) {
-                        c.ngModuleFactory.create(this.injector);
-                      }
-                      this.loadedModules[url].next(modules);
-                      this.loadedModules[url].complete();
-                    } catch (e) {
-                      this.loadedModules[url].error(new Error(`Unable to init module from url: ${url}`));
-                    }
-                  },
-                  (e) => {
-                    this.loadedModules[url].error(new Error(`Unable to compile module from url: ${url}`));
-                  });
-              } else {
-                this.loadedModules[url].error(new Error(`Module '${url}' doesn't have default export or not NgModule!`));
-              }
-            } catch (e) {
-              this.loadedModules[url].error(new Error(`Unable to load module from url: ${url}`));
-            }
-          },
-          (e) => {
-            this.loadedModules[url].error(new Error(`Unable to load module from url: ${url}`));
-            console.error(`Unable to load module from url: ${url}`, e);
-          }
-        );
-      }
-    );
-    return subject.asObservable().pipe(
-      tap({
-        next: () => System.delete(url),
-        error: () => {
-          delete this.loadedModulesAndFactories[url];
-          System.delete(url);
-        },
-        complete: () => System.delete(url)
-      })
-    );
-  }
-
   private extractNgModules(module: any, modules: Type<any>[] = []): Type<any>[] {
     try {
       let potentialModules = [module];
@@ -242,7 +208,7 @@ export class ResourcesService {
       while (potentialModules.length && currentScanDepth < 10) {
         const newPotentialModules = [];
         for (const potentialModule of potentialModules) {
-          if (potentialModule && ('ɵmod' in potentialModule)) {
+          if (potentialModule && (ɵNG_MOD_DEF in potentialModule)) {
             modules.push(potentialModule);
           } else {
             for (const k of Object.keys(potentialModule)) {
@@ -317,7 +283,6 @@ export class ResourcesService {
   }
 
   private clearModulesCache() {
-    this.loadedModules = {};
     this.loadedModulesAndFactories = {};
   }
 }

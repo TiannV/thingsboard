@@ -16,7 +16,6 @@
 package org.thingsboard.server.controller;
 
 
-import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +36,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
+import org.thingsboard.server.config.annotations.ApiOperation;
 
 import static org.thingsboard.server.controller.ControllerConstants.*;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -141,7 +141,7 @@ public class SchedulerJobController extends BaseController{
 
     @ApiOperation(value = "Get Tenant SchedulerJobs (getTenantSchedulerJobs)",
             notes = "Returns a page of schedulerJobs owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH, produces = MediaType.APPLICATION_JSON_VALUE)
+                    PAGE_DATA_PARAMETERS + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = {"/tenant/schedulerJobs"}, params = {"pageSize", "page"}, method = {RequestMethod.GET})
     @ResponseBody
