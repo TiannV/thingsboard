@@ -16,8 +16,11 @@
 package org.thingsboard.server;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.Ordered;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -32,6 +35,8 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 @ComponentScan({"org.thingsboard.server", "org.thingsboard.script"})
 @Slf4j
+@EnableDubbo
+@SpringBootApplication
 public class ThingsboardServerApplication {
 
     private static final String SPRING_CONFIG_NAME_KEY = "--spring.config.name";
@@ -41,7 +46,10 @@ public class ThingsboardServerApplication {
 
     public static void main(String[] args) {
         startTs = System.currentTimeMillis();
-        SpringApplication.run(ThingsboardServerApplication.class, updateArguments(args));
+        SpringApplication application = new SpringApplication(ThingsboardServerApplication.class);
+        application.setApplicationStartup(new BufferingApplicationStartup(2048));
+        application.run(updateArguments(args));
+//        SpringApplication.run(ThingsboardServerApplication.class, updateArguments(args));
     }
 
     private static String[] updateArguments(String[] args) {
